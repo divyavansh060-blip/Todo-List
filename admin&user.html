@@ -364,91 +364,200 @@ function getCurrentUserKey(){
   return c.role === "user" ? "user_" + c.userid : "ADMIN";
 }
 
-<!-- ================= PROFILE SYSTEM FULL CODE ================= -->
+/* LOAD PROFILE */
+function loadProfile(){
+  let key = getCurrentUserKey();
+  if(!key) return;
 
-<!-- TOP PROFILE -->
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-  <img id="topProfilePicUser" src="https://via.placeholder.com/40" width="40" height="40" style="border-radius:50%;">
-  <span id="topProfileNameUser">User</span>
-</div>
+  let user = JSON.parse(localStorage.getItem(key) || "{}");
 
-<!-- USER BOX -->
-<div id="userBox" class="active">
+  let el = getProfileElements();
 
-  <h2>User Profile</h2>
+  if(!el.name) return;
 
-  <img 
-    id="profilePicUserBox"
-    src="https://via.placeholder.com/80"
-    width="80"
-    height="80"
-    style="border-radius:50%;display:block;margin-bottom:10px;"
-  >
+  el.name.value = user.name || "";
+  el.email.value = user.email || "";
+  el.pic.src = user.pic || "https://via.placeholder.com/80";
 
-  <input type="file" id="uploadPicUser">
+  document.getElementById("userName").innerText =
+    "User : " + (user.name || "User");
 
-  <br><br>
-
-  <input 
-    type="text"
-    id="profileNameUser"
-    placeholder="Enter Name"
-    style="padding:10px;width:250px;"
-  >
-
-  <br><br>
-
-  <input 
-    type="email"
-    id="profileEmailUser"
-    placeholder="Enter Email"
-    style="padding:10px;width:250px;"
-  >
-
-  <br><br>
-
-  <button onclick="saveProfile()">
-    Save Profile
-  </button>
-
-</div>
-
-<script>
-
-/* =========================
-   DEMO LOGIN DATA
-========================= */
-
-if(!localStorage.current){
-  localStorage.current = JSON.stringify({
-    id: "1001"
-  });
+  updateTopProfile();
 }
 
-if(!localStorage.getItem("user_1001")){
-  localStorage.setItem("user_1001", JSON.stringify({
-    name: "Divya",
-    email: "divya@gmail.com",
-    pic: ""
-  }));
+function updateTopProfile(){
+  let key = getCurrentUserKey();
+  if(!key) return;
+
+  let user = JSON.parse(localStorage.getItem(key) || "{}");
+
+  let pic = user.pic || "https://via.placeholder.com/40";
+  let name = user.name || "User";
+
+  let adminPic = document.getElementById("topProfilePicAdmin");
+  let adminName = document.getElementById("topProfileNameAdmin");
+
+  let userPic = document.getElementById("topProfilePicUser");
+  let userName = document.getElementById("topProfileNameUser");
+
+  if(adminPic) adminPic.src = pic;
+  if(adminName) adminName.innerText = name;
+
+  if(userPic) userPic.src = pic;
+  if(userName) userName.innerText = name;
 }
 
-/* =========================
-   GET CURRENT USER KEY
-========================= */
 
-function getCurrentUserKey(){
+function saveProfile(){
+  let key = getCurrentUserKey();
+  if(!key) return;
 
-  let current = JSON.parse(localStorage.current || "{}");
+  let el = getProfileElements();
+console.log("Profile Elements:", el);
+  // ✅ safety check
+  if(!el.name || !el.email || !el.pic){
+    alert("Profile elements not found");
+    return;
+  }
 
-  if(!current.id) return null;
+  let user = JSON.parse(localStorage.getItem(key) || "{}");
 
-  return "user_" + current.id;
+  user.name = el.name.value.trim();
+  user.email = el.email.value.trim();
+
+  if(!user.name){
+    alert("Name required");
+    return;
+  }
+  
+  if(el.pic.dataset.temp){
+    user.pic = el.pic.dataset.temp;
+  }
+
+  localStorage.setItem(key, JSON.stringify(user));
+
+let current = JSON.parse(localStorage.current || "{}");
+  current.name = user.name;
+  localStorage.current = JSON.stringify(current);
+
+  showToast("✅ Profile Updated", "success");
+
+  loadProfile();
+  renderUserTasks?.();
+  renderAdmin?.();
+  updateTopProfile();
 }
 
-/* =========================
-   GET PROFILE ELEMENTS
-========================= */
+document.addEventListener("keypress", function(e){
+  if(e.key === "Enter" && document.getElementById("authBox").classList.contains("active")){
+    auth();
+  }
+});
+
+function loadUserDropdown(){
+ let select = document.getElementById("taskUser");
+ select.innerHTML = "<option value=''>Select User</option>";
+
+ Object.keys(localStorage)
+ .filter(k=>{
+   if(!k.startsWith("user_")) return false;
+
+   try{
+     let u = JSON.parse(localStorage[k]);
+     return u && u.name;
+   }catch{
+     return false;
+   }
+ })
+ .forEach(k=>{
+   let userid = k.replace("user_","");
+   let u = JSON.parse(localStorage[k]);
+
+   select.innerHTML += `
+   <option value="${userid}">
+     ${u.name} (${userid})
+   </option>`;
+ });
+}
+function getProfileElements(){
+  let adminActive = document.getElementById("adminBox").classList.contains("active");
+  let userActive = document.getElementById("userBox").classList.contains("active");
+
+  if(adminActive){
+    return {
+      name: document.getElementById("profileNameAdmin"),
+      email: document.getElementById("profileEmailAdmin"),
+      pic: document.getElementById("profilePicAdmin")
+    };
+  }
+
+  if(userActive){
+    return {
+      name: document.getElementById("profileNameUser"),
+      email: document.getElementById("profileEmailUser"),
+      pic: document.getElementById("profilePicUserBox")
+    };
+  }
+
+  return { name:null, email:null, pic:null };
+}
+
+function setupUploadListeners(){
+  let adminUpload = document.getElementById("uploadPicAdmin");
+  let userUpload = document.getElementById("uploadPicUser");
+
+  if(adminUpload){
+    adminUpload.addEventListener("change", handleImageUpload);
+  }
+
+  if(userUpload){
+    userUpload.addEventListener("change", handleImageUpload);
+  }
+}
+
+function handleImageUpload(){
+  let file = this.files[0];
+  if(!file) return;
+
+  if(file.size > 1024 * 1024){
+    alert("Image too large! Max 1MB");
+    return;
+  }
+
+  let reader = new FileReader();
+  reader.onload = function(e){
+    let img = new Image();
+    img.src = e.target.result;
+
+    img.onload = function(){
+      let canvas = document.createElement("canvas");
+      let size = 150;
+      canvas.width = size;
+      canvas.height = size;
+
+      let ctx = canvas.getContext("2d");
+
+      let min = Math.min(img.width, img.height);
+      let sx = (img.width - min) / 2;
+      let sy = (img.height - min) / 2;
+
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+
+      let compressed = canvas.toDataURL("image/jpeg", 0.7);
+
+      let el = getProfileElements(); // ✅ define here
+      if(!el.pic){
+        alert("Profile image element not found");
+        return;
+      }
+
+      el.pic.src = compressed;
+      el.pic.dataset.temp = compressed;
+    };
+  };
+
+  reader.readAsDataURL(file);
+}
 
 function getProfileElements(){
 
