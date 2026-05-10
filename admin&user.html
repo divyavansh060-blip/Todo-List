@@ -515,7 +515,7 @@ function setupUploadListeners(){
   }
 }
 
-function handleImageUpload(){
+
   let file = this.files[0];
   if(!file) return;
 
@@ -559,200 +559,7 @@ function handleImageUpload(){
   reader.readAsDataURL(file);
 }
 
-function getProfileElements(){
-
-  return {
-    name: document.getElementById("profileNameUser"),
-    email: document.getElementById("profileEmailUser"),
-    pic: document.getElementById("profilePicUserBox")
-  };
-}
-
-/* =========================
-   LOAD PROFILE
-========================= */
-
-function loadProfile(){
-
-  let key = getCurrentUserKey();
-
-  if(!key) return;
-
-  let user = JSON.parse(localStorage.getItem(key) || "{}");
-
-  let el = getProfileElements();
-
-  if(!el.name) return;
-
-  el.name.value = user.name || "";
-  el.email.value = user.email || "";
-
-  el.pic.src =
-    user.pic ||
-    "https://via.placeholder.com/80";
-
-  document.getElementById("topProfileNameUser").innerText =
-    user.name || "User";
-
-  document.getElementById("topProfilePicUser").src =
-    user.pic ||
-    "https://via.placeholder.com/40";
-}
-
-/* =========================
-   SAVE PROFILE
-========================= */
-
-function saveProfile(){
-
-  let key = getCurrentUserKey();
-
-  if(!key) return;
-
-  let el = getProfileElements();
-
-  if(!el.name || !el.email || !el.pic){
-    alert("Profile elements not found");
-    return;
-  }
-
-  let user = JSON.parse(localStorage.getItem(key) || "{}");
-
-  user.name = el.name.value.trim();
-  user.email = el.email.value.trim();
-
-  if(!user.name){
-    alert("Name required");
-    return;
-  }
-
-  if(el.pic.dataset.temp){
-    user.pic = el.pic.dataset.temp;
-  }
-
-  localStorage.setItem(
-    key,
-    JSON.stringify(user)
-  );
-
-  let current = JSON.parse(localStorage.current || "{}");
-
-  current.name = user.name;
-
-  localStorage.current =
-    JSON.stringify(current);
-
-  alert("✅ Profile Updated");
-
-  loadProfile();
-}
-
-/* =========================
-   IMAGE UPLOAD
-========================= */
-
-function setupUploadListeners(){
-
-  let userUpload =
-    document.getElementById("uploadPicUser");
-
-  if(userUpload){
-    userUpload.addEventListener(
-      "change",
-      handleImageUpload
-    );
-  }
-}
-
-/* =========================
-   HANDLE IMAGE
-========================= */
-
-function handleImageUpload(){
-
-  let file = this.files[0];
-
-  if(!file) return;
-
-  if(file.size > 1024 * 1024){
-    alert("Image too large! Max 1MB");
-    return;
-  }
-
-  let reader = new FileReader();
-
-  reader.onload = function(e){
-
-    let img = new Image();
-
-    img.src = e.target.result;
-
-    img.onload = function(){
-
-      let canvas =
-        document.createElement("canvas");
-
-      let size = 150;
-
-      canvas.width = size;
-      canvas.height = size;
-
-      let ctx = canvas.getContext("2d");
-
-      let min =
-        Math.min(img.width, img.height);
-
-      let sx =
-        (img.width - min) / 2;
-
-      let sy =
-        (img.height - min) / 2;
-
-      ctx.drawImage(
-        img,
-        sx,
-        sy,
-        min,
-        min,
-        0,
-        0,
-        size,
-        size
-      );
-
-      let compressed =
-        canvas.toDataURL(
-          "image/jpeg",
-          0.7
-        );
-
-      let el = getProfileElements();
-
-      if(!el.pic){
-        alert("Profile image element not found");
-        return;
-      }
-
-      el.pic.src = compressed;
-
-      el.pic.dataset.temp =
-        compressed;
-    };
-  };
-
-  reader.readAsDataURL(file);
-}
-
-/* =========================
-   START
-========================= */
-
-setupUploadListeners();
-
-loadProfile();
-
-
-function forgotPassword(){
+  function forgotPassword(){
   let email = prompt("Enter your registered Email:");
   if(!email) return;
 
@@ -1221,6 +1028,8 @@ function loadAdmin(){
  loadUserDropdown();
  loadAdminNotifications();
 startAdminLiveNotification();
+loadProfile();
+updateTopProfile();
 }
 
 function addTask(){
@@ -1473,6 +1282,8 @@ if(!userid){
  show("userBox");
  userName.textContent="User : "+c.name;
  renderUserTasks();
+  loadProfile();
+updateTopProfile();
 
  // ===== LIVE NOTIFICATION =====
 // CLEAR OLD INTERVALS FIRST
