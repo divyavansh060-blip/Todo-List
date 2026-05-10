@@ -180,6 +180,9 @@ button.red{background:#e53935}
 <small id="err" style="color:red"></small>
 <button onclick="auth()">Continue</button>
 <button class="orange" onclick="forgotPassword()">Forgot Password?</button>
+  <button class="red" onclick="removeAccount()">
+Remove Account
+</button>
 <button class="gray" onclick="toggleMode()">Signup / Login</button>
 </div>
 
@@ -2036,6 +2039,95 @@ function safeSet(key, data){
     localStorage.setItem(key, data);
   }catch(e){
     alert("Storage full! Please backup data.");
+  }
+}
+
+  function removeAccount(){
+
+  // ===== ADMIN REMOVE =====
+  if(role === "admin"){
+
+    let a = JSON.parse(localStorage.getItem("ADMIN") || "null");
+
+    if(!a){
+      alert("Admin not found");
+      return;
+    }
+
+    let email = prompt("Enter Admin Email:");
+    if(!email) return;
+
+    if(a.email.toLowerCase() !== email.toLowerCase().trim()){
+      alert("Wrong Email");
+      return;
+    }
+
+    let pass = prompt("Enter Admin Password:");
+    if(a.pass !== hash(pass)){
+      alert("Wrong Password");
+      return;
+    }
+
+    if(confirm("Delete Admin Account Permanently?")){
+
+      localStorage.removeItem("ADMIN");
+      localStorage.removeItem("current");
+
+      alert("Admin removed successfully");
+
+      show("roleBox");
+    }
+
+    return;
+  }
+
+  // ===== USER REMOVE =====
+  let userid = userIdI.value.toLowerCase().trim();
+
+  if(!userid){
+    alert("Enter User ID");
+    return;
+  }
+
+  let key = "user_" + userid;
+
+  let u = JSON.parse(localStorage.getItem(key) || "null");
+
+  if(!u){
+    alert("User not found");
+    return;
+  }
+
+  let email = prompt("Enter User Email:");
+  if(!email) return;
+
+  if(u.email.toLowerCase() !== email.toLowerCase().trim()){
+    alert("Wrong Email");
+    return;
+  }
+
+  let pass = prompt("Enter User Password:");
+  if(u.pass !== hash(pass)){
+    alert("Wrong Password");
+    return;
+  }
+
+  if(confirm("Delete User Account Permanently?")){
+
+    localStorage.removeItem(key);
+    localStorage.removeItem("task_" + userid);
+
+    let online = JSON.parse(localStorage.getItem("onlineUsers") || "[]");
+
+    online = online.filter(e => e !== u.email.toLowerCase());
+
+    localStorage.setItem("onlineUsers", JSON.stringify(online));
+
+    localStorage.removeItem("current");
+
+    alert("User removed successfully");
+
+    show("roleBox");
   }
 }
 </script>
