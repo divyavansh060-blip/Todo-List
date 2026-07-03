@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<linl rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#6a1b9a">
 <title>Professional Login</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -85,6 +85,17 @@ gap:6px;
 font-size:13px;
 margin-top:8px;
 }
+
+/* Fixes the inherited 100% width on the checkbox */
+.remember input {
+width: auto;
+margin-top: 0;
+cursor: pointer;
+}
+
+.remember label {
+cursor: pointer;
+}
 </style>
 </head>
 
@@ -105,7 +116,8 @@ margin-top:8px;
 </div>
 
 <div class="remember">
-<input type="checkbox" id="remember"> Remember Me
+<input type="checkbox" id="remember"> 
+<label for="remember">Remember Me</label>
 </div>
 
 <button onclick="login()">Login</button>
@@ -121,20 +133,14 @@ margin-top:8px;
 
 /* AUTO LOAD USER */
 window.onload=function(){
-
 let savedEmail = localStorage.getItem("userEmail") || sessionStorage.getItem("userEmail");
 let savedName = localStorage.getItem("profile_name");
 
 if(savedEmail && savedName){
-
 document.getElementById("email").value = savedEmail;
 document.getElementById("name").value = savedName;
-
-document.getElementById("welcome").innerText =
-"Welcome back, " + savedName + " 👋";
-
+document.getElementById("welcome").innerText = "Welcome back, " + savedName + " 👋";
 }
-
 }
 
 /* SHOW PASSWORD */
@@ -157,7 +163,6 @@ login();
 
 /* LOGIN */
 function login(){
-
 let name=document.getElementById("name").value.trim();
 let email=document.getElementById("email").value.trim();
 let pass=document.getElementById("password").value.trim();
@@ -211,7 +216,7 @@ window.location="todo.html";
 }
 </script>
   
-  <script>
+<script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js');
 }
