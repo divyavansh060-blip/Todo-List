@@ -8,6 +8,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
+/* Applied global box-sizing to manage paddings and widths perfectly */
+*{
+ box-sizing: border-box;
+ font-family: Poppins, sans-serif;
+}
+
 body{
  margin:0;
  min-height:100vh;
@@ -15,7 +21,6 @@ body{
  justify-content:center;
  align-items:center;
  background:linear-gradient(135deg,#667eea,#764ba2);
- font-family:Poppins;
 }
 
 .box{
@@ -56,6 +61,7 @@ button{
  font-weight:bold;
  cursor:pointer;
  font-size:15px;
+ transition: opacity 0.2s;
 }
 
 button:hover{
@@ -64,16 +70,16 @@ button:hover{
 
 #msg{
  margin-top:10px;
- color:green;
  font-size:14px;
-}
-.back{
-margin-top:10px;
-color:blue;
-cursor:pointer;
-text-align:center;
+ min-height: 20px; /* Reserves space to prevent structural jumps */
 }
 
+.back{
+ margin-top:15px;
+ color:#3949ab;
+ cursor:pointer;
+ text-align:center;
+}
 </style>
 </head>
 
@@ -83,40 +89,59 @@ text-align:center;
 <h2>🔐 Forgot Password</h2>
 <p>Enter your registered email to reset password</p>
 
-<input id="email" placeholder="Enter Email">
+<input id="email" type="email" placeholder="Enter Email">
 
 <button onclick="reset()">Send Reset Link</button>
 
 <p id="msg"></p>
 <p class="back" onclick="location.href='index.html'">
-⬅ Back to Login
+ ⬅ Back to Login
 </p>
 
 </div>
 
 <script>
+/* Simple email syntax verification */
+function isValidEmail(email){
+ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
 function reset(){
-
  let email = document.getElementById("email").value.trim();
  let msg = document.getElementById("msg");
 
- let savedPass = localStorage.getItem(email+"_pass");
+ // Clean status display
+ msg.innerText = "";
 
- if(savedPass == null){
-   alert("Email not registered");
+ if(email === ""){
+   msg.style.color = "red";
+   msg.innerText = "Please enter your email";
    return;
  }
 
- localStorage.setItem("reset_email",email);
+ if(!isValidEmail(email)){
+   msg.style.color = "red";
+   msg.innerText = "Enter a valid email address";
+   return;
+ }
 
- msg.style.color="green";
- msg.innerText="Reset link sent (Demo)";
+ let savedPass = localStorage.getItem(email + "_pass");
+
+ if(savedPass == null){
+   msg.style.color = "red";
+   msg.innerText = "Email not registered";
+   return;
+ }
+
+ // Store token for the upcoming newpassword.html validation
+ localStorage.setItem("reset_email", email);
+
+ msg.style.color = "green";
+ msg.innerText = "Reset link verified. Redirecting...";
 
  setTimeout(()=>{
-  location.href="newpassword.html";
- },1500);
-
+  location.href = "newpassword.html";
+ }, 1500);
 }
 </script>
 </body>
